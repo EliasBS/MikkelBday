@@ -689,7 +689,7 @@
       <div class="progress-fill" id="progress-fill"></div>
     </div>
     <div class="quest-phase" id="quest-phase" style="margin-top:0.6rem;"></div>
-    <p class="quest-hint"><span aria-hidden="true">🍺</span> Tap any card to mark a drink as downed · Fill in the "Given by" field to record who bought it</p>
+    <p class="quest-hint"><span aria-hidden="true">🍺</span> Tap any card to mark a drink as downed · Fill in the "Drink" field to record what was ordered · Fill in the "Given by" field to record who bought it</p>
   </div>
 
   <!-- ── Drink cards grid ────────────────────────────────────────── -->
@@ -750,13 +750,14 @@
       const raw = localStorage.getItem('mikkel_quest');
       if (raw) return JSON.parse(raw);
     } catch (_) {}
-    return { done: Array(TOTAL).fill(false), givers: Array(TOTAL).fill('') };
+    return { done: Array(TOTAL).fill(false), givers: Array(TOTAL).fill(''), drinkTypes: Array(TOTAL).fill('') };
   }
 
   function saveState() {
     const state = {
-      done:   drinks.map(d => d.done),
-      givers: drinks.map(d => d.giver),
+      done:       drinks.map(d => d.done),
+      givers:     drinks.map(d => d.giver),
+      drinkTypes: drinks.map(d => d.drinkType),
     };
     localStorage.setItem('mikkel_quest', JSON.stringify(state));
   }
@@ -768,8 +769,9 @@
     id:    i,
     icon:  DRINK_ICONS[i],
     name:  DRINK_NAMES[i],
-    done:  savedState.done[i]  || false,
-    giver: savedState.givers[i] || '',
+    done:  savedState.done[i]       || false,
+    giver: savedState.givers[i]     || '',
+    drinkType: savedState.drinkTypes ? (savedState.drinkTypes[i] || '') : '',
   }));
 
   /* ── Render ──────────────────────────────────────────────────────── */
@@ -829,6 +831,16 @@
               data-id="${drink.id}"
             />
           </div>
+          <div class="giver-row">
+            <span class="giver-label">Drink:</span>
+            <input
+              class="giver-input drink-type-input"
+              type="text"
+              placeholder="What drink?"
+              value="${escHtml(drink.drinkType)}"
+              data-id="${drink.id}"
+            />
+          </div>
         </div>
         <button class="btn-tick" data-id="${drink.id}" title="${drink.done ? 'Undo' : 'Mark as downed!'}">
           ${drink.done ? '✔' : '🍺'}
@@ -860,13 +872,22 @@
       });
     });
 
-    grid.querySelectorAll('.giver-input').forEach(inp => {
+    grid.querySelectorAll('.giver-input:not(.drink-type-input)').forEach(inp => {
       inp.addEventListener('input', e => {
         const id = parseInt(e.target.dataset.id);
         drinks[id].giver = e.target.value;
         saveState();
       });
       // Prevent card toggle when typing or clicking the input
+      inp.addEventListener('click', e => e.stopPropagation());
+    });
+
+    grid.querySelectorAll('.drink-type-input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const id = parseInt(e.target.dataset.id);
+        drinks[id].drinkType = e.target.value;
+        saveState();
+      });
       inp.addEventListener('click', e => e.stopPropagation());
     });
   }
@@ -904,8 +925,9 @@
     const lines = ['⚔️  THE SCROLL OF MIKKEL\'S QUEST  ⚔️', '═'.repeat(44), ''];
     drinks.forEach((d, i) => {
       const tick   = d.done ? '[✔]' : '[ ]';
-      const giver  = d.giver ? `  ← ${d.giver}` : '';
-      lines.push(`${tick} ${String(i + 1).padStart(2, '0')}. ${d.name}${giver}`);
+      const giver     = d.giver     ? `  ← ${d.giver}`     : '';
+      const drinkType = d.drinkType ? ` (${d.drinkType})`   : '';
+      lines.push(`${tick} ${String(i + 1).padStart(2, '0')}. ${d.name}${drinkType}${giver}`);
     });
     lines.push('', '═'.repeat(44));
     const completed = drinks.filter(d => d.done).length;
