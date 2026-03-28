@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mikkel's Epic Quest of 31 Potions 🍺</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=MedievalSharp&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & base ────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #f5c518;
+      --gold-dim:    #c9982a;
+      --gold-dark:   #7a5c00;
+      --bg-deep:     #0b0a0e;
+      --bg-card:     #14121c;
+      --bg-card2:    #1c1828;
+      --purple:      #6b2fa0;
+      --purple-lit:  #9b5de5;
+      --red:         #c0392b;
+      --green:       #27ae60;
+      --green-lit:   #2ecc71;
+      --text:        #e8dfc8;
+      --text-dim:    #a89880;
+      --border:      #3a3050;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Cinzel', serif;
+      background-color: var(--bg-deep);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Particle stars canvas ───────────────────────────────────── */
+    #stars-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Page wrapper ────────────────────────────────────────────── */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem 1.2rem 4rem;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    header {
+      text-align: center;
+      padding: 2rem 0 1.5rem;
+    }
+
+    .crown {
+      font-size: 3.5rem;
+      animation: float 3s ease-in-out infinite;
+      display: block;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-10px); }
+    }
+
+    .title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.6rem, 5vw, 3rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #f5c518 0%, #fff4a0 45%, #c9982a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      line-height: 1.2;
+      margin-top: 0.4rem;
+    }
+
+    .subtitle {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(0.8rem, 2vw, 1.05rem);
+      color: var(--text-dim);
+      margin-top: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+    }
+    .divider span {
+      color: var(--gold);
+      font-size: 1.2rem;
+    }
+
+    /* ── Quest progress bar ──────────────────────────────────────── */
+    .quest-panel {
+      background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem 1.8rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 32px rgba(107,47,160,0.18);
+    }
+
+    .quest-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .quest-label span {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #progress-count {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.3rem;
+      color: var(--gold);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 22px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--purple) 0%, var(--purple-lit) 50%, var(--gold) 100%);
+      border-radius: 99px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -60%;
+      width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+      animation: shimmer 2.5s linear infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { left: -60%; }
+      100% { left: 120%; }
+    }
+
+    .quest-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .quest-phase {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(0.75rem, 2vw, 0.95rem);
+      color: var(--purple-lit);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Save button ─────────────────────────────────────────────── */
+    .btn-save {
+      font-family: 'Cinzel', serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold-dim));
+      color: #1a1000;
+      padding: 0.6rem 1.2rem;
+      min-height: 44px;
+      border-radius: 6px;
+      transition: opacity 0.2s, transform 0.1s;
+      box-shadow: 0 2px 10px rgba(245,197,24,0.3);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-save:hover  { opacity: 0.85; }
+    .btn-save:active { transform: scale(0.97); }
+
+    /* ── Drink grid ──────────────────────────────────────────────── */
+    .drink-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 1rem;
+    }
+
+    /* ── Drink card ──────────────────────────────────────────────── */
+    .drink-card {
+      background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-card2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .drink-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, var(--purple) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.35s;
+      pointer-events: none;
+    }
+
+    .drink-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(107,47,160,0.25);
+      border-color: var(--purple);
+    }
+
+    .drink-card:hover::before { opacity: 0.07; }
+
+    /* Completed state */
+    .drink-card.done {
+      border-color: var(--green);
+      box-shadow: 0 0 18px rgba(39,174,96,0.25);
+    }
+
+    .drink-card.done::before {
+      background: linear-gradient(135deg, var(--green) 0%, transparent 60%);
+      opacity: 0.08;
+    }
+
+    /* ── Number badge ────────────────────────────────────────────── */
+    .drink-num {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 2px solid var(--gold-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--gold);
+      background: rgba(245,197,24,0.06);
+      transition: background 0.3s, border-color 0.3s, color 0.3s;
+      position: relative;
+    }
+
+    .drink-card.done .drink-num {
+      background: rgba(39,174,96,0.15);
+      border-color: var(--green-lit);
+      color: var(--green-lit);
+    }
+
+    /* Checkmark overlay */
+    .drink-num .check {
+      position: absolute;
+      font-size: 1.4rem;
+      opacity: 0;
+      transform: scale(0);
+      transition: opacity 0.3s, transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .drink-num .num-text {
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .drink-card.done .drink-num .check {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .drink-card.done .drink-num .num-text {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+
+    /* ── Card body ───────────────────────────────────────────────── */
+    .drink-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .drink-name-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+    }
+
+    .drink-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    /* ── Drink label (overflow guard) ───────────────────────────── */
+    .drink-label {
+      font-family: 'Cinzel', serif;
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      overflow-wrap: break-word;
+      word-break: break-word;
+    }
+
+    .drink-card.done .drink-label {
+      color: var(--green-lit);
+      text-decoration: line-through;
+      text-decoration-color: rgba(46,204,113,0.5);
+    }
+
+    /* ── Who gave it field ───────────────────────────────────────── */
+    .giver-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .giver-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      opacity: 0.7;
+    }
+
+    .giver-input {
+      flex: 1;
+      min-width: 0;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 0.45rem 0.55rem;
+      font-family: 'Cinzel', serif;
+      /* 16px minimum prevents iOS Safari auto-zoom on focus */
+      font-size: 16px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      touch-action: manipulation;
+    }
+
+    .giver-input::placeholder { color: var(--text-dim); opacity: 0.5; }
+    .giver-input:focus {
+      border-color: var(--gold-dim);
+      background: rgba(245,197,24,0.06);
+    }
+
+    .drink-card.done .giver-input {
+      border-color: rgba(39,174,96,0.3);
+      color: var(--green-lit);
+    }
+
+    /* ── Tick button ─────────────────────────────────────────────── */
+    .btn-tick {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      border: 2px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-tick:hover {
+      background: rgba(107,47,160,0.25);
+      border-color: var(--purple-lit);
+    }
+
+    .btn-tick:active { transform: scale(0.88); }
+
+    .drink-card.done .btn-tick {
+      background: rgba(39,174,96,0.2);
+      border-color: var(--green-lit);
+    }
+
+    /* ── Victory banner ──────────────────────────────────────────── */
+    #victory {
+      display: none;
+      text-align: center;
+      padding: 2.5rem 1.5rem;
+      background: linear-gradient(135deg, rgba(107,47,160,0.2) 0%, rgba(245,197,24,0.1) 100%);
+      border: 1px solid var(--gold-dim);
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #victory.show { display: block; animation: fadeIn 0.8s ease-out; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .victory-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      background: linear-gradient(135deg, var(--gold) 0%, #fff4a0 50%, var(--gold-dim) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+
+    .victory-sub {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+      line-height: 1.6;
+    }
+
+    /* ── Print / Save scroll modal ───────────────────────────────── */
+    #save-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      /* allow scroll on iOS when virtual keyboard is up */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #save-modal.open { display: flex; }
+
+    .modal-box {
+      background: var(--bg-card2);
+      border: 1px solid var(--gold-dim);
+      border-radius: 14px;
+      padding: 1.5rem;
+      max-width: 540px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    }
+
+    .modal-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 1.15rem;
+      color: var(--gold);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    #scroll-content {
+      font-family: 'Cinzel', serif;
+      font-size: 0.82rem;
+      color: var(--text);
+      white-space: pre-wrap;
+      line-height: 1.9;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.2rem;
+      max-height: 50vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      margin-top: 1.2rem;
+      justify-content: flex-end;
+    }
+
+    .btn-modal {
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      border: none;
+      border-radius: 7px;
+      padding: 0.65rem 1.1rem;
+      min-height: 44px;
+      transition: opacity 0.2s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-modal:hover { opacity: 0.8; }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-dark), var(--gold-dim));
+      color: #1a1000;
+    }
+
+    .btn-close-modal {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-dim);
+    }
+
+    /* ── Floating confetti particles ─────────────────────────────── */
+    .confetti-piece {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 200;
+      animation: confettiFall linear forwards;
+    }
+
+    @keyframes confettiFall {
+      0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ── Disable hover lift on touch devices ────────────────────── */
+    @media (hover: none) {
+      .drink-card:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--border);
+      }
+      .drink-card:hover::before { opacity: 0; }
+      .drink-card.done:hover { border-color: var(--green); box-shadow: 0 0 18px rgba(39,174,96,0.25); }
+    }
+
+    /* ── Responsive tweaks ───────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .page {
+        padding-top: 1rem;
+        padding-left: 0.8rem;
+        padding-right: 0.8rem;
+      }
+
+      header { padding: 1rem 0 1rem; }
+
+      .crown { font-size: 2.6rem; }
+
+      .quest-panel {
+        padding: 1rem;
+      }
+
+      /* Stack "Quest Progress / count" above the save button */
+      .quest-title-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+      }
+
+      .quest-label {
+        margin-bottom: 0;
+      }
+
+      .btn-save {
+        width: 100%;
+        text-align: center;
+      }
+
+      .drink-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+
+      /* Slightly more breathing room on the card */
+      .drink-card { padding: 0.85rem 0.85rem; }
+
+      /* Modal fills screen on phone */
+      .modal-box {
+        padding: 1rem;
+        border-radius: 10px;
+        max-height: 95vh;
+      }
+
+      .modal-title { font-size: 1rem; }
+
+      /* Buttons take full width on very small screens */
+      .modal-actions { flex-direction: column; }
+      .btn-modal { width: 100%; text-align: center; }
+    }
+
+    /* ── Print styles ────────────────────────────────────────────── */
+    @media print {
+      #stars-canvas, header, .quest-panel, .drink-grid, #victory, #save-modal { display: none !important; }
+      #print-scroll { display: block !important; }
+    }
+
+    #print-scroll { display: none; }
+  </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<div class="page">
+
+  <!-- ── Header ─────────────────────────────────────────────────── -->
+  <header>
+    <span class="crown">⚔️👑⚔️</span>
+    <h1 class="title">Mikkel's Quest of 31 Potions</h1>
+    <p class="subtitle">A Legend is Forged One Drink at a Time</p>
+  </header>
+
+  <div class="divider"><span>✦</span></div>
+
+  <!-- ── Victory banner (hidden until complete) ─────────────────── -->
+  <div id="victory">
+    <div class="victory-title">⚔️ Quest Complete! ⚔️</div>
+    <div class="victory-sub">
+      Hail, Mikkel the Mighty! Thou hast conquered all 31 potions and earned<br />
+      thy place in the Hall of Legends. May this night be sung of forever!
+    </div>
+  </div>
+
+  <!-- ── Progress panel ─────────────────────────────────────────── -->
+  <div class="quest-panel">
+    <div class="quest-title-row">
+      <div class="quest-label">
+        <span>Quest Progress</span>
+        <span id="progress-count">0 / 31</span>
+      </div>
+      <button class="btn-save" onclick="openSaveModal()">📜 Save the Scroll</button>
+    </div>
+    <div class="progress-track" style="margin-top:0.6rem;">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="quest-phase" id="quest-phase" style="margin-top:0.6rem;"></div>
+  </div>
+
+  <!-- ── Drink cards grid ────────────────────────────────────────── -->
+  <div class="drink-grid" id="drink-grid"></div>
+
+</div>
+
+<!-- ── Save scroll modal ──────────────────────────────────────────── -->
+<div id="save-modal">
+  <div class="modal-box">
+    <div class="modal-title">📜 The Scroll of Mikkel's Quest</div>
+    <pre id="scroll-content"></pre>
+    <div class="modal-actions">
+      <button class="btn-modal btn-close-modal" onclick="closeSaveModal()">Close</button>
+      <button class="btn-modal btn-primary"     onclick="copyScroll()">📋 Copy</button>
+      <button class="btn-modal btn-primary"     onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Data ────────────────────────────────────────────────────────── */
+  const TOTAL = 31;
+
+  const DRINK_ICONS = [
+    '🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🧊',
+    '🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🧊',
+    '🍺','🍻','🥂','🍷','🥃','🍸','🍹','🧉','🍾','🧊','🏆'
+  ];
+
+  const DRINK_NAMES = [
+    'The Warlord's Brew',      'The Dragon's Breath',    'The Elven Nectar',
+    'The Orc's Gut-Buster',    'The Wizard's Elixir',    'The Goblin Guzzle',
+    'The Knight's Courage',    'The Sorcerer's Poison',  'The Dark Lord's Draught',
+    'The Phoenix Potion',      'The Troll's Tonic',      'The Vampire's Vial',
+    'The Witch's Brew',        'The Paladin's Purity',   'The Necromancer's Nip',
+    'The Bard's Ballad',       'The Rogue's Ruin',       'The Ranger's Reserve',
+    'The Titan's Tipple',      'The Mermaid's Mead',     'The Celestial Cask',
+    'The Shadow Spirit',       'The Forge-Fire Flagon',  'The Crystal Chalice',
+    'The Storm Surge',         'The Moonlit Malt',       'The Inferno Infusion',
+    'The Sea Serpent Sip',     'The Ancient Ambrosia',   'The Legendary Libation',
+    '🏆 The Final Reckoning 🏆'
+  ];
+
+  const PHASES = [
+    { at: 0,  label: '⚔️  The Adventure Begins…'               },
+    { at: 5,  label: '🔥  The Quest Heats Up!'                  },
+    { at: 10, label: '🐉  Slaying Dragons Now…'                  },
+    { at: 15, label: '💥  Halfway Through the Gauntlet!'         },
+    { at: 20, label: '🌟  A Legend is Forming…'                  },
+    { at: 25, label: '⚡  Almost Legendary!'                     },
+    { at: 31, label: '👑  Mikkel the Mighty — Quest Complete!'   },
+  ];
+
+  /* ── Load / save state in localStorage ──────────────────────────── */
+  function loadState() {
+    try {
+      const raw = localStorage.getItem('mikkel_quest');
+      if (raw) return JSON.parse(raw);
+    } catch (_) {}
+    return { done: Array(TOTAL).fill(false), givers: Array(TOTAL).fill('') };
+  }
+
+  function saveState() {
+    const state = {
+      done:   drinks.map(d => d.done),
+      givers: drinks.map(d => d.giver),
+    };
+    localStorage.setItem('mikkel_quest', JSON.stringify(state));
+  }
+
+  /* ── Build drink data ────────────────────────────────────────────── */
+  const savedState = loadState();
+
+  const drinks = Array.from({ length: TOTAL }, (_, i) => ({
+    id:    i,
+    icon:  DRINK_ICONS[i],
+    name:  DRINK_NAMES[i],
+    done:  savedState.done[i]  || false,
+    giver: savedState.givers[i] || '',
+  }));
+
+  /* ── Render ──────────────────────────────────────────────────────── */
+  function getPhase(count) {
+    let label = PHASES[0].label;
+    for (const p of PHASES) {
+      if (count >= p.at) label = p.label;
+    }
+    return label;
+  }
+
+  function updateProgress() {
+    const count = drinks.filter(d => d.done).length;
+    const pct   = (count / TOTAL) * 100;
+    document.getElementById('progress-fill').style.width  = pct + '%';
+    document.getElementById('progress-count').textContent = `${count} / ${TOTAL}`;
+    document.getElementById('quest-phase').textContent    = getPhase(count);
+
+    if (count === TOTAL) {
+      document.getElementById('victory').classList.add('show');
+      launchConfetti();
+    } else {
+      document.getElementById('victory').classList.remove('show');
+    }
+  }
+
+  function renderCards() {
+    const grid = document.getElementById('drink-grid');
+    grid.innerHTML = '';
+
+    drinks.forEach(drink => {
+      const card = document.createElement('div');
+      card.className = 'drink-card' + (drink.done ? ' done' : '');
+      card.dataset.id = drink.id;
+
+      card.innerHTML = `
+        <div class="drink-num">
+          <span class="num-text">${drink.id + 1}</span>
+          <span class="check">✔</span>
+        </div>
+        <div class="drink-body">
+          <div class="drink-name-row">
+            <span class="drink-icon">${drink.icon}</span>
+            <span class="drink-label">${drink.name}</span>
+          </div>
+          <div class="giver-row">
+            <span class="giver-label">Given by:</span>
+            <input
+              class="giver-input"
+              type="text"
+              placeholder="Who gave this?"
+              value="${escHtml(drink.giver)}"
+              data-id="${drink.id}"
+            />
+          </div>
+        </div>
+        <button class="btn-tick" data-id="${drink.id}" title="${drink.done ? 'Undo' : 'Mark as downed!'}">
+          ${drink.done ? '✔' : '🍺'}
+        </button>
+      `;
+
+      grid.appendChild(card);
+    });
+
+    /* ── Event listeners ── */
+    grid.querySelectorAll('.btn-tick').forEach(btn => {
+      btn.addEventListener('click', e => {
+        const id = parseInt(e.currentTarget.dataset.id);
+        toggleDrink(id);
+      });
+    });
+
+    grid.querySelectorAll('.giver-input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const id = parseInt(e.target.dataset.id);
+        drinks[id].giver = e.target.value;
+        saveState();
+      });
+      // Prevent card toggle when typing
+      inp.addEventListener('click', e => e.stopPropagation());
+    });
+  }
+
+  function escHtml(str) {
+    return str
+      .replace(/&/g,  '&amp;')
+      .replace(/</g,  '&lt;')
+      .replace(/>/g,  '&gt;')
+      .replace(/"/g,  '&quot;');
+  }
+
+  function toggleDrink(id) {
+    drinks[id].done = !drinks[id].done;
+    saveState();
+
+    // Re-render just that card for performance
+    const card = document.querySelector(`.drink-card[data-id="${id}"]`);
+    if (card) {
+      const d = drinks[id];
+      card.classList.toggle('done', d.done);
+      const btn = card.querySelector('.btn-tick');
+      btn.textContent = d.done ? '✔' : '🍺';
+      btn.title       = d.done ? 'Undo' : 'Mark as downed!';
+    }
+
+    updateProgress();
+
+    if (drinks[id].done) spawnMini(id);
+  }
+
+  /* ── Save scroll modal ───────────────────────────────────────────── */
+  function openSaveModal() {
+    const lines = ['⚔️  THE SCROLL OF MIKKEL\'S QUEST  ⚔️', '═'.repeat(44), ''];
+    drinks.forEach((d, i) => {
+      const tick   = d.done ? '[✔]' : '[ ]';
+      const giver  = d.giver ? `  ← ${d.giver}` : '';
+      lines.push(`${tick} ${String(i + 1).padStart(2, '0')}. ${d.name}${giver}`);
+    });
+    lines.push('', '═'.repeat(44));
+    const completed = drinks.filter(d => d.done).length;
+    lines.push(`Potions downed: ${completed} / ${TOTAL}`);
+    if (completed === TOTAL) {
+      lines.push('', '🏆  QUEST COMPLETE! Mikkel the Mighty! 🏆');
+    }
+    document.getElementById('scroll-content').textContent = lines.join('\n');
+    document.getElementById('save-modal').classList.add('open');
+  }
+
+  function closeSaveModal() {
+    document.getElementById('save-modal').classList.remove('open');
+  }
+
+  async function copyScroll() {
+    const text = document.getElementById('scroll-content').textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('📜 Scroll copied to clipboard!');
+    } catch (_) {
+      alert('Could not copy — please select and copy manually.');
+    }
+  }
+
+  // Close modal on backdrop click
+  document.getElementById('save-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeSaveModal();
+  });
+
+  /* ── Stars canvas ────────────────────────────────────────────────── */
+  (function initStars() {
+    const canvas = document.getElementById('stars-canvas');
+    const ctx    = canvas.getContext('2d');
+    let stars    = [];
+
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function makeStars(n) {
+      stars = [];
+      for (let i = 0; i < n; i++) {
+        stars.push({
+          x:   Math.random() * canvas.width,
+          y:   Math.random() * canvas.height,
+          r:   Math.random() * 1.4 + 0.2,
+          a:   Math.random(),
+          da:  (Math.random() - 0.5) * 0.008,
+        });
+      }
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(s => {
+        s.a += s.da;
+        if (s.a <= 0 || s.a >= 1) s.da *= -1;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(245,197,24,${s.a * 0.6})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(drawStars);
+    }
+
+    window.addEventListener('resize', () => { resize(); makeStars(160); });
+    resize();
+    makeStars(160);
+    drawStars();
+  })();
+
+  /* ── Mini confetti burst on each drink ──────────────────────────── */
+  function spawnMini(id) {
+    const card = document.querySelector(`.drink-card[data-id="${id}"]`);
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const cx   = rect.left + rect.width / 2;
+    const cy   = rect.top  + rect.height / 2;
+
+    const colors = ['#f5c518','#9b5de5','#2ecc71','#e74c3c','#3498db','#fff'];
+
+    for (let i = 0; i < 14; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      const size  = 6 + Math.random() * 8;
+      const drift = (Math.random() - 0.5) * 180;
+      el.style.cssText = `
+        left: ${cx}px;
+        top:  ${cy}px;
+        width:  ${size}px;
+        height: ${size}px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        animation: confettiFall ${0.9 + Math.random() * 0.8}s linear forwards;
+        transform: translateX(${drift}px);
+      `;
+      document.body.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+  }
+
+  /* ── Full confetti on victory ────────────────────────────────────── */
+  function launchConfetti() {
+    const colors = ['#f5c518','#9b5de5','#2ecc71','#e74c3c','#3498db','#fff','#c9982a'];
+    for (let i = 0; i < 120; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        const size = 7 + Math.random() * 10;
+        el.style.cssText = `
+          left: ${Math.random() * 100}vw;
+          top: 0;
+          width:  ${size}px;
+          height: ${size}px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+          animation: confettiFall ${1.5 + Math.random() * 2.5}s linear forwards;
+        `;
+        document.body.appendChild(el);
+        el.addEventListener('animationend', () => el.remove());
+      }, i * 30);
+    }
+  }
+
+  /* ── Init ────────────────────────────────────────────────────────── */
+  renderCards();
+  updateProgress();
+</script>
+</body>
+</html>
