@@ -191,6 +191,14 @@
       letter-spacing: 0.06em;
     }
 
+    .quest-hint {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      margin-top: 0.55rem;
+      letter-spacing: 0.04em;
+      opacity: 0.8;
+    }
+
     /* ── Save button ─────────────────────────────────────────────── */
     .btn-save {
       font-family: 'Cinzel', serif;
@@ -394,24 +402,34 @@
       width: 44px;
       height: 44px;
       border-radius: 8px;
-      border: 2px solid var(--border);
-      background: rgba(255,255,255,0.03);
+      border: 2px solid var(--gold-dark);
+      background: rgba(245,197,24,0.08);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.2rem;
-      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s, box-shadow 0.2s;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 0 6px rgba(245,197,24,0.15);
     }
 
     .btn-tick:hover {
-      background: rgba(107,47,160,0.25);
+      background: rgba(107,47,160,0.35);
       border-color: var(--purple-lit);
+      box-shadow: 0 0 12px rgba(107,47,160,0.4);
     }
 
     .btn-tick:active { transform: scale(0.88); }
+
+    /* Make the whole card feel clickable */
+    .drink-card { cursor: pointer; }
+
+    .drink-card:focus-visible {
+      outline: 2px solid var(--gold-dim);
+      outline-offset: 2px;
+    }
 
     .drink-card.done .btn-tick {
       background: rgba(39,174,96,0.2);
@@ -671,6 +689,7 @@
       <div class="progress-fill" id="progress-fill"></div>
     </div>
     <div class="quest-phase" id="quest-phase" style="margin-top:0.6rem;"></div>
+    <p class="quest-hint"><span aria-hidden="true">🍺</span> Tap any card to mark a drink as downed · Fill in the "Given by" field to record who bought it</p>
   </div>
 
   <!-- ── Drink cards grid ────────────────────────────────────────── -->
@@ -785,6 +804,10 @@
       const card = document.createElement('div');
       card.className = 'drink-card' + (drink.done ? ' done' : '');
       card.dataset.id = drink.id;
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'checkbox');
+      card.setAttribute('aria-checked', drink.done ? 'true' : 'false');
+      card.setAttribute('aria-label', `Drink ${drink.id + 1}: ${drink.name} – ${drink.done ? 'downed' : 'not yet downed'}`);
 
       card.innerHTML = `
         <div class="drink-num">
@@ -816,8 +839,22 @@
     });
 
     /* ── Event listeners ── */
+    grid.querySelectorAll('.drink-card').forEach(card => {
+      card.addEventListener('click', () => {
+        toggleDrink(parseInt(card.dataset.id));
+      });
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleDrink(parseInt(card.dataset.id));
+        }
+      });
+    });
+
     grid.querySelectorAll('.btn-tick').forEach(btn => {
       btn.addEventListener('click', e => {
+        // Stop propagation so the card-level click doesn't also fire
+        e.stopPropagation();
         const id = parseInt(e.currentTarget.dataset.id);
         toggleDrink(id);
       });
@@ -829,7 +866,7 @@
         drinks[id].giver = e.target.value;
         saveState();
       });
-      // Prevent card toggle when typing
+      // Prevent card toggle when typing or clicking the input
       inp.addEventListener('click', e => e.stopPropagation());
     });
   }
@@ -851,6 +888,7 @@
     if (card) {
       const d = drinks[id];
       card.classList.toggle('done', d.done);
+      card.setAttribute('aria-checked', d.done ? 'true' : 'false');
       const btn = card.querySelector('.btn-tick');
       btn.textContent = d.done ? '✔' : '🍺';
       btn.title       = d.done ? 'Undo' : 'Mark as downed!';
